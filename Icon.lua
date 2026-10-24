@@ -150,32 +150,7 @@ function Icon.setDisplayOrder(int)
 	Icon.baseDisplayOrder = int
 	Icon.baseDisplayOrderChanged:Fire(int)
 end
-local customHolderPathInstance = nil
 
-function Icon.holder()
-	local holderBuilder = {}
-	
-	function holderBuilder:setHolder(pathString)
-		local current = localPlayer:WaitForChild("PlayerGui")
-		
-		if typeof(pathString) == "string" then
-			for segment in string.gmatch(pathString, "[^.]+") do
-				current = current:WaitForChild(segment)
-			end
-			customHolderPathInstance = current
-		elseif typeof(pathString) == "Instance" then
-			customHolderPathInstance = pathString
-		end
-		
-		return Icon
-	end
-	
-	return holderBuilder
-end
-
-function Icon._getCustomHolder()
-	return customHolderPathInstance
-end
 
 
 

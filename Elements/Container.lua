@@ -86,6 +86,20 @@ local previousInsetHeight = 0
         local localPlayer = Players.LocalPlayer
         local playerGui = localPlayer:WaitForChild("PlayerGui")
 
+        -- ระบบเคลียร์ตัวซ้ำ: สแกนหาและทำลายตัวที่ซ้ำกันทิ้งให้เหลือแค่อันเดียวอันแรกสุด
+        for _, name in ipairs({"TopbarStandard", "TopbarCentered", "TopbarStandardClipped", "TopbarCenteredClipped"}) do
+                local first = true
+                for _, child in ipairs(playerGui:GetChildren()) do
+                        if child.Name == name then
+                                if first then
+                                        first = false
+                                else
+                                        pcall(function() child:Destroy() end)
+                                end
+                        end
+                end
+        end
+
         local screenGui = playerGui:FindFirstChild("TopbarStandard")
         if not screenGui then
                 screenGui = Instance.new("ScreenGui")
@@ -158,7 +172,7 @@ local previousInsetHeight = 0
                 screenGuiCenterClipped.DisplayOrder = (Icon.baseDisplayOrder + 1)
                 screenGuiCenterClipped.Parent = playerGui
         end
-        Icon.baseDisplayOwnerChanged:Connect(function()
+        Icon.baseDisplayOrderChanged:Connect(function()
                 screenGuiCenterClipped.DisplayOrder = (Icon.baseDisplayOrder + 1)
         end)
         container[screenGuiCenterClipped.Name] = screenGuiCenterClipped
@@ -238,7 +252,7 @@ local previousInsetHeight = 0
                 right:FindFirstChildOfClass("UIListLayout").HorizontalAlignment = Enum.HorizontalAlignment.Right
         end
 
-        insetChanged:Find(guiInset)
+        insetChanged:Fire(guiInset)
 
         return container
 end

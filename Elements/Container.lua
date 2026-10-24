@@ -86,60 +86,13 @@ local previousInsetHeight = 0
         local localPlayer = Players.LocalPlayer
         local playerGui = localPlayer:WaitForChild("PlayerGui")
 
-        -- ระบบป้องกันและกวาดล้างตัวซ้ำแบบถาวร (รวมถึงดักจับที่เกิดทีหลัง)
-        local protectedGuys = {
-            ["TopbarStandard"] = false,
-            ["TopbarCentered"] = false,
-            ["TopbarStandardClipped"] = false,
-            ["TopbarCenteredClipped"] = false
-        }
-
-        for _, child in ipairs(playerGui:GetChildren()) do
-            if protectedGuys[child.Name] ~= nil then
-                if not protectedGuys[child.Name] then
-                    protectedGuys[child.Name] = child
-                else
-                    pcall(function() child:Destroy() end)
-                end
-            end
-        end
-
-        playerGui.ChildAdded:Connect(function(child)
-            if protectedGuys[child.Name] ~= nil then
-                if protectedGuys[child.Name] and protectedGuys[child.Name].Parent == playerGui then
-                    pcall(function() child:Destroy() end)
-                else
-                    protectedGuys[child.Name] = child
-                end
-            end
-        end)
-
-        local screenGui = playerGui:FindFirstChild("TopbarStandard")
-        if not screenGui then
-                screenGui = Instance.new("ScreenGui")
-                screenGui.Name = "TopbarStandard"
-                screenGui.Enabled = true
-                screenGui.DisplayOrder = Icon.baseDisplayOrder
-                screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-                screenGui.IgnoreGuiInset = true
-                screenGui.ResetOnSpawn = false
-                screenGui.ScreenInsets = Enum.ScreenInsets.TopbarSafeInsets
-                screenGui.Parent = playerGui
-        end
+        local screenGui = playerGui:WaitForChild("TopbarStandard")
         container[screenGui.Name] = screenGui
         Icon.baseDisplayOrderChanged:Connect(function()
                 screenGui.DisplayOrder = Icon.baseDisplayOrder
         end)
 
-        local holders = screenGui:FindFirstChild("Holders")
-        if not holders then
-                holders = Instance.new("Frame")
-                holders.Name = "Holders"
-                holders.BackgroundTransparency = 1
-                holders.Visible = true
-                holders.ZIndex = 1
-                holders.Parent = screenGui
-        end
+        local holders = screenGui:WaitForChild("Holders")
         insetChanged:Connect(function()
                 local holderY = if isUsingVR then 36 else 56
                 local holderSize = if isConsoleScreen then UDim2.new(1, 0, 0, holderY) else UDim2.new(1, 0, 1, ySizeOffset)
@@ -147,29 +100,8 @@ local previousInsetHeight = 0
                 holders.Size = holderSize
         end)
 
-        local screenGuiCenter = playerGui:FindFirstChild("TopbarCentered")
-        if not screenGuiCenter then
-                screenGuiCenter = Instance.new("ScreenGui")
-                screenGuiCenter.Name = "TopbarCentered"
-                screenGuiCenter.Enabled = true
-                screenGuiCenter.DisplayOrder = Icon.baseDisplayOrder
-                screenGuiCenter.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-                screenGuiCenter.IgnoreGuiInset = true
-                screenGuiCenter.ResetOnSpawn = false
-                screenGuiCenter.ScreenInsets = Enum.ScreenInsets.None
-                screenGuiCenter.Parent = playerGui
-        end
-        
-        local holdersCenter = screenGuiCenter:FindFirstChild("Holders")
-        if not holdersCenter then
-                holdersCenter = Instance.new("Frame")
-                holdersCenter.Name = "Holders"
-                holdersCenter.BackgroundTransparency = 1
-                holdersCenter.Visible = true
-                holdersCenter.ZIndex = 1
-                holdersCenter.Parent = screenGuiCenter
-        end
-
+        local screenGuiCenter = playerGui:WaitForChild("TopbarCentered")
+        local holdersCenter = screenGuiCenter:WaitForChild("Holders")
         local function updateCenteredHoldersHeight()
                 holdersCenter.Size = UDim2.new(1, 0, 0, GuiService.TopbarInset.Height+ySizeOffset)
         end
@@ -181,68 +113,22 @@ local previousInsetHeight = 0
         insetChanged:Connect(updateCenteredHoldersHeight)
         updateCenteredHoldersHeight()
 
-        local screenGuiClipped = playerGui:FindFirstChild("TopbarStandardClipped")
-        if not screenGuiClipped then
-                screenGuiClipped = Instance.new("ScreenGui")
-                screenGuiClipped.Name = "TopbarStandardClipped"
-                screenGuiClipped.Enabled = true
-                screenGuiClipped.DisplayOrder = (Icon.baseDisplayOrder + 1)
-                screenGuiClipped.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-                screenGuiClipped.IgnoreGuiInset = true
-                screenGuiClipped.ResetOnSpawn = false
-                screenGuiClipped.ScreenInsets = Enum.ScreenInsets.TopbarSafeInsets
-                screenGuiClipped.Parent = playerGui
-        end
+        local screenGuiClipped = playerGui:WaitForChild("TopbarStandardClipped")
         Icon.baseDisplayOrderChanged:Connect(function()
                 screenGuiClipped.DisplayOrder = (Icon.baseDisplayOrder + 1)
         end)
         container[screenGuiClipped.Name] = screenGuiClipped
 
-        local screenGuiCenterClipped = playerGui:FindFirstChild("TopbarCenteredClipped")
-        if not screenGuiCenterClipped then
-                screenGuiCenterClipped = Instance.new("ScreenGui")
-                screenGuiCenterClipped.Name = "TopbarCenteredClipped"
-                screenGuiCenterClipped.Enabled = true
-                screenGuiCenterClipped.DisplayOrder = (Icon.baseDisplayOrder + 1)
-                screenGuiCenterClipped.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-                screenGuiCenterClipped.IgnoreGuiInset = true
-                screenGuiCenterClipped.ResetOnSpawn = false
-                screenGuiCenterClipped.ScreenInsets = Enum.ScreenInsets.None
-                screenGuiCenterClipped.Parent = playerGui
-        end
+        local screenGuiCenterClipped = playerGui:WaitForChild("TopbarCenteredClipped")
         Icon.baseDisplayOrderChanged:Connect(function()
                 screenGuiCenterClipped.DisplayOrder = (Icon.baseDisplayOrder + 1)
         end)
         container[screenGuiCenterClipped.Name] = screenGuiCenterClipped
 
-        local holderReduction = -24
-        local left = holders:FindFirstChild("Left")
-        if not left then
-                left = Instance.new("ScrollingFrame")
-                left:SetAttribute("IsAHolder", true)
-                left.Name = "Left"
-                insetChanged:Connect(function()
-                        left.Position = UDim2.fromOffset(startInset, 0)
-                end)
-                left.Size = UDim2.new(1, holderReduction, 1, 0)
-                left.BackgroundTransparency = 1
-                left.Visible = true
-                left.ZIndex = 1
-                left.Active = false
-                left.ClipsDescendants = true
-                left.HorizontalScrollBarInset = Enum.ScrollBarInset.None
-                left.CanvasSize = UDim2.new(0, 0, 1, -1)
-                left.AutomaticCanvasSize = Enum.AutomaticSize.X
-                left.ScrollingDirection = Enum.ScrollingDirection.X
-                left.ScrollBarThickness = 0
-                left.BorderSizePixel = 0
-                left.Selectable = false
-                left.ScrollingEnabled = false
-                left.ElasticBehavior = Enum.ElasticBehavior.Never
-                left.Parent = holders
-        else
-                left:SetAttribute("IsAHolder", true)
-        end
+        local left = holders:WaitForChild("Left")
+        insetChanged:Connect(function()
+                left.Position = UDim2.fromOffset(startInset, 0)
+        end)
 
         local UIListLayout = left:FindFirstChildOfClass("UIListLayout")
         if not UIListLayout then
@@ -257,38 +143,19 @@ local previousInsetHeight = 0
                 UIListLayout.Parent = left
         end
 
-        local center = holdersCenter:FindFirstChild("Center")
-        if not center then
-                center = left:Clone()
-                center.Name = "Center"
-                center.Parent = holdersCenter
-        end
+        local center = holdersCenter:WaitForChild("Center")
         insetChanged:Connect(function()
                 if center:FindFirstChildOfClass("UIListLayout") then
                         center:FindFirstChildOfClass("UIListLayout").Padding = UDim.new(0, startInset)
                 end
         end)
-        center.ScrollingEnabled = false
-        if center:FindFirstChildOfClass("UIListLayout") then
-                center:FindFirstChildOfClass("UIListLayout").HorizontalAlignment = Enum.HorizontalAlignment.Center
-        end
 
-        local right = holders:FindFirstChild("Right")
-        if not right then
-                right = left:Clone()
-                right.Name = "Right"
-                right.AnchorPoint = Vector2.new(1, 0)
-                right.Position = UDim2.new(1, -12, 0, 0)
-                right.Parent = holders
-        end
+        local right = holders:WaitForChild("Right")
         insetChanged:Connect(function()
                 if right:FindFirstChildOfClass("UIListLayout") then
                         right:FindFirstChildOfClass("UIListLayout").Padding = UDim.new(0, startInset)
                 end
         end)
-        if right:FindFirstChildOfClass("UIListLayout") then
-                right:FindFirstChildOfClass("UIListLayout").HorizontalAlignment = Enum.HorizontalAlignment.Right
-        end
 
         insetChanged:Fire(guiInset)
 

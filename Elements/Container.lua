@@ -86,8 +86,9 @@ local previousInsetHeight = 0
         local localPlayer = Players.LocalPlayer
         local playerGui = localPlayer:WaitForChild("PlayerGui")
 
-        local screenGui = playerGui:FindFirstChild("TopbarStandard") or Instance.new("ScreenGui")
-        if not screenGui.Parent then
+        local screenGui = playerGui:FindFirstChild("TopbarStandard")
+        if not screenGui then
+                screenGui = Instance.new("ScreenGui")
                 screenGui.Name = "TopbarStandard"
                 screenGui.Enabled = true
                 screenGui.DisplayOrder = Icon.baseDisplayOrder
@@ -102,8 +103,9 @@ local previousInsetHeight = 0
                 screenGui.DisplayOrder = Icon.baseDisplayOrder
         end)
 
-        local holders = screenGui:FindFirstChild("Holders") or Instance.new("Frame")
-        if not holders.Parent then
+        local holders = screenGui:FindFirstChild("Holders")
+        if not holders then
+                holders = Instance.new("Frame")
                 holders.Name = "Holders"
                 holders.BackgroundTransparency = 1
                 holders.Visible = true
@@ -117,16 +119,17 @@ local previousInsetHeight = 0
                 holders.Size = holderSize
         end)
 
-        local screenGuiCenter = playerGui:FindFirstChild("TopbarCentered") or screenGui:Clone()
-        local holdersCenter = screenGuiCenter:FindFirstChild("Holders") or screenGuiCenter.Holders
-        local function updateCenteredHoldersHeight()
-                holdersCenter.Size = UDim2.new(1, 0, 0, GuiService.TopbarInset.Height+ySizeOffset)
-        end
-        if not screenGuiCenter.Parent then
+        local screenGuiCenter = playerGui:FindFirstChild("TopbarCentered")
+        if not screenGuiCenter then
+                screenGuiCenter = screenGui:Clone()
                 screenGuiCenter.Name = "TopbarCentered"
                 screenGuiCenter.DisplayOrder = Icon.baseDisplayOrder
                 screenGuiCenter.ScreenInsets = Enum.ScreenInsets.None
                 screenGuiCenter.Parent = playerGui
+        end
+        local holdersCenter = screenGuiCenter:FindFirstChild("Holders") or screenGuiCenter.Holders
+        local function updateCenteredHoldersHeight()
+                holdersCenter.Size = UDim2.new(1, 0, 0, GuiService.TopbarInset.Height+ySizeOffset)
         end
         container[screenGuiCenter.Name] = screenGuiCenter
         Icon.baseDisplayOrderChanged:Connect(function()
@@ -136,8 +139,9 @@ local previousInsetHeight = 0
         insetChanged:Connect(updateCenteredHoldersHeight)
         updateCenteredHoldersHeight()
 
-        local screenGuiClipped = playerGui:FindFirstChild("TopbarStandardClipped") or screenGui:Clone()
-        if not screenGuiClipped.Parent then
+        local screenGuiClipped = playerGui:FindFirstChild("TopbarStandardClipped")
+        if not screenGuiClipped then
+                screenGuiClipped = screenGui:Clone()
                 screenGuiClipped.Name = "TopbarStandardClipped"
                 screenGuiClipped.DisplayOrder = (Icon.baseDisplayOrder + 1)
                 screenGuiClipped.Parent = playerGui
@@ -147,25 +151,22 @@ local previousInsetHeight = 0
         end)
         container[screenGuiClipped.Name] = screenGuiClipped
 
-        local screenGuiCenterClipped = playerGui:FindFirstChild("TopbarCenteredClipped") or screenGuiCenter:Clone()
-        if not screenGuiCenterClipped.Parent then
+        local screenGuiCenterClipped = playerGui:FindFirstChild("TopbarCenteredClipped")
+        if not screenGuiCenterClipped then
+                screenGuiCenterClipped = screenGuiCenter:Clone()
                 screenGuiCenterClipped.Name = "TopbarCenteredClipped"
                 screenGuiCenterClipped.DisplayOrder = (Icon.baseDisplayOrder + 1)
                 screenGuiCenterClipped.Parent = playerGui
         end
-        Icon.baseDisplayOrderChanged:Connect(function()
+        Icon.baseDisplayOwnerChanged:Connect(function()
                 screenGuiCenterClipped.DisplayOrder = (Icon.baseDisplayOrder + 1)
         end)
         container[screenGuiCenterClipped.Name] = screenGuiCenterClipped
 
-        local customHolderInstance = nil
-        if Icon._getCustomHolder then
-                customHolderInstance = Icon._getCustomHolder()
-        end
-
         local holderReduction = -24
-        local left = customHolderInstance or holders:FindFirstChild("Left") or Instance.new("ScrollingFrame")
-        if not customHolderInstance and not left.Parent then
+        local left = holders:FindFirstChild("Left")
+        if not left then
+                left = Instance.new("ScrollingFrame")
                 left:SetAttribute("IsAHolder", true)
                 left.Name = "Left"
                 insetChanged:Connect(function()
@@ -188,12 +189,12 @@ local previousInsetHeight = 0
                 left.ElasticBehavior = Enum.ElasticBehavior.Never
                 left.Parent = holders
         else
-                left.Name = "Left"
                 left:SetAttribute("IsAHolder", true)
         end
 
-        local UIListLayout = left:FindFirstChildOfClass("UIListLayout") or Instance.new("UIListLayout")
-        if not left:FindFirstChildOfClass("UIListLayout") then
+        local UIListLayout = left:FindFirstChildOfClass("UIListLayout")
+        if not UIListLayout then
+                UIListLayout = Instance.new("UIListLayout")
                 insetChanged:Connect(function()
                         UIListLayout.Padding = UDim.new(0, startInset)
                 end)
@@ -204,42 +205,40 @@ local previousInsetHeight = 0
                 UIListLayout.Parent = left
         end
 
-        local center = holdersCenter:FindFirstChild("Center") or left:Clone()
+        local center = holdersCenter:FindFirstChild("Center")
+        if not center then
+                center = left:Clone()
+                center.Name = "Center"
+                center.Parent = holdersCenter
+        end
         insetChanged:Connect(function()
-                if not customHolderInstance then
-                        if center:FindFirstChildOfClass("UIListLayout") then
-                                center:FindFirstChildOfClass("UIListLayout").Padding = UDim.new(0, startInset)
-                        end
+                if center:FindFirstChildOfClass("UIListLayout") then
+                        center:FindFirstChildOfClass("UIListLayout").Padding = UDim.new(0, startInset)
                 end
         end)
         center.ScrollingEnabled = false
         if center:FindFirstChildOfClass("UIListLayout") then
                 center:FindFirstChildOfClass("UIListLayout").HorizontalAlignment = Enum.HorizontalAlignment.Center
         end
-        center.Name = "Center"
-        if not center.Parent then
-                center.Parent = holdersCenter
-        end
 
-        local right = holders:FindFirstChild("Right") or left:Clone()
+        local right = holders:FindFirstChild("Right")
+        if not right then
+                right = left:Clone()
+                right.Name = "Right"
+                right.AnchorPoint = Vector2.new(1, 0)
+                right.Position = UDim2.new(1, -12, 0, 0)
+                right.Parent = holders
+        end
         insetChanged:Connect(function()
-                if not customHolderInstance then
-                        if right:FindFirstChildOfClass("UIListLayout") then
-                                right:FindFirstChildOfClass("UIListLayout").Padding = UDim.new(0, startInset)
-                        end
+                if right:FindFirstChildOfClass("UIListLayout") then
+                        right:FindFirstChildOfClass("UIListLayout").Padding = UDim.new(0, startInset)
                 end
         end)
         if right:FindFirstChildOfClass("UIListLayout") then
                 right:FindFirstChildOfClass("UIListLayout").HorizontalAlignment = Enum.HorizontalAlignment.Right
         end
-        right.Name = "Right"
-        right.AnchorPoint = Vector2.new(1, 0)
-        right.Position = UDim2.new(1, -12, 0, 0)
-        if not right.Parent then
-                right.Parent = holders
-        end
 
-        insetChanged:Fire(guiInset)
+        insetChanged:Find(guiInset)
 
         return container
 end
